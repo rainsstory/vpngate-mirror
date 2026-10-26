@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>vpngate-mirror</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 15px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; max-width: 46rem; margin: 4rem auto; padding: 0 1.25rem; }
+  h1 { font-size: 1.35rem; margin-bottom: .25rem; }
+  p.sub { margin-top: 0; opacity: .7; }
+  code, pre { font: inherit; }
+  pre { border: 1px solid rgba(127,127,127,.35); border-radius: 6px; padding: .75rem; overflow-x: auto; }
+  a { color: inherit; }
+  kbd { border: 1px solid rgba(127,127,127,.4); border-radius: 4px; padding: 0 .3em; }
+</style>
+</head>
+<body>
+<h1>vpngate-mirror</h1>
+<p class="sub">Static mirror of the public VPN Gate aggregate API.</p>
+
+<p>Endpoint:</p>
+<pre><a href="./api/iphone/">/api/iphone/</a></pre>
+
+<p>Client base URL:</p>
+<pre>https://rainsstory.github.io/vpngate-mirror</pre>
+
+<p>Payload shape — <code>*vpn_servers</code>, then a <code>#HostName,IP,Score,…</code> header, then CSV rows:</p>
+<pre>*vpn_servers
+#HostName,IP,Score,Ping,Speed,CountryLong,CountryShort,NumVpnSessions,…</pre>
+
+<p>Refreshed by a scheduled workflow in this repository. The file is served as
+<code>text/html</code> because GitHub Pages picks the content type from the filename;
+parse the body as text, not by MIME type.</p>
+
+<p>Upstream: <a href="https://www.vpngate.net/api/iphone/">www.vpngate.net/api/iphone/</a>
+(public data, VPN Gate project, University of Tsukuba).</p>
+</body>
+</html>

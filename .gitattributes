@@ -1,0 +1,6 @@
+# The mirrored payload is machine data, not source text: never let git
+# normalize its line endings or convert encodings.
+api/iphone/index.html -text -diff -merge
+*.ps1 text eol=crlf
+*.yml text eol=lf
+*.js  text eol=lf
