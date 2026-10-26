@@ -1,0 +1,77 @@
+name: mirror-vpngate-api
+
+# Mirror the public VPN Gate aggregate API into a GitHub Pages path that is
+# reachable where www.vpngate.net is blocked.
+#
+# Served at:  https://<owner>.github.io/<repo>/api/iphone/
+# The upstream path is /api/iphone/ (with trailing slash), so the mirrored file
+# lives at api/iphone/index.html and keeps that exact URL shape.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # best effort; GitHub can delay several minutes
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror-vpngate-api
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch upstream (https, fall back to http)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p api/iphone
+          UA="vpngate-mirror/1.0 (+github actions)"
+          ok=0
+          for scheme in https http; do
+            if curl -fsS --retry 4 --retry-all-errors --retry-delay 2 \
+                 --max-time 150 -A "$UA" \
+                 -o api/iphone/index.html.tmp \
+                 "$scheme://www.vpngate.net/api/iphone/"; then
+              ok=1
+              echo "fetched via $scheme"
+              break
+            fi
+            echo "fetch via $scheme failed" >&2
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::upstream unreachable over https and http"
+            exit 1
+          fi
+
+      - name: Validate payload before publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          f=api/iphone/index.html.tmp
+          # Upstream starts with "*vpn_servers" then "#HostName,..." then CSV rows.
+          head -c 13 "$f" | grep -q '^\*vpn_servers' || { echo "::error::missing *vpn_servers header"; exit 1; }
+          grep -q '^#HostName,IP,Score' "$f" || { echo "::error::missing CSV column header"; exit 1; }
+          rows=$(wc -l < "$f")
+          echo "rows=$rows bytes=$(wc -c < "$f")"
+          # A healthy aggregate has tens of rows; refuse to publish a stub.
+          [ "$rows" -ge 10 ] || { echo "::error::suspiciously small payload"; exit 1; }
+          mv "$f" api/iphone/index.html
+
+      - name: Commit when changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name  "vpngate-mirror-bot"
+          git config user.email "vpngate-mirror-bot@users.noreply.github.com"
+          git add api/iphone/index.html
+          if git diff --staged --quiet; then
+            echo "no change"
+          else
+            git commit -m "mirror: refresh $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi

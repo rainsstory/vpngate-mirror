@@ -1,0 +1,18 @@
+name = "vpngate-mirror"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+# Optional: drive the GitHub Pages mirror from the Worker instead of Actions.
+# Requires a fine-grained PAT with `contents: write` on the mirror repo, stored as
+#   npx wrangler secret put GITHUB_TOKEN
+# and these vars:
+# [vars]
+#   GH_OWNER = "your-user"
+#   GH_REPO  = "vpngate-mirror"
+#   GH_PATH  = "api/iphone/index.html"
+#
+# [triggers]
+# crons = ["*/10 * * * *"]
+
+[observability]
+enabled = true
